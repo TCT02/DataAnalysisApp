@@ -4,15 +4,37 @@
 #include <iostream>
 #include <curl\curl.h>
 
+CURLcode curl_global_init(long flags);
+
+size_t write_data(void* buffer, size_t size, size_t nmemb, void* userp);
+
 int main()
 {
     std::cout << "Hello World!\n";
+    curl_global_init(CURL_GLOBAL_ALL);
 
-    CURL* curl;
+    CURL* handle;
+    CURLcode res;
 
-    curl = curl_easy_init();
-    curl_easy_cleanup(curl);
+    handle = curl_easy_init();
+    //curl_global_init(handle);
+    if (handle) {
+        curl_easy_setopt(handle, CURLOPT_URL, "https://example.com/");
+        res = curl_easy_perform(handle);
+        //curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
 
+        if (res != CURLE_OK) {
+            fprintf(stderr, "curl_easy_perform() returned %s/n", curl_easy_strerror(res));
+        }
+
+        curl_easy_cleanup(handle);
+    }
+
+
+    //Test coords for data 32.93066677912789,-117.14432584599716
+    //test link for data https://api.weather.gov/points/32.93066677912789,-117.14432584599716
+
+    curl_global_cleanup();
     return 0;
 
 }
