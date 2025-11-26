@@ -1,8 +1,10 @@
 ﻿  DataAnalysisApp.cpp
-C:\Users\TERRY TRAN\source\repos\DataAnalysisApp\DataAnalysisApp\DataAnalysisApp.cpp(7,10): warning C4273: 'curl_global_init': inconsistent dll linkage
+C:\Users\TERRY TRAN\source\repos\DataAnalysisApp\DataAnalysisApp\DataAnalysisApp.cpp(9,10): warning C4273: 'curl_global_init': inconsistent dll linkage
       C:\Users\TERRY TRAN\vcpkg\installed\x64-windows\include\curl\curl.h(2751,22):
       see previous definition of 'curl_global_init'
   
+C:\Users\TERRY TRAN\source\repos\DataAnalysisApp\DataAnalysisApp\DataAnalysisApp.cpp(79,24): warning C4477: 'printf' : format string '%d' requires an argument of type 'int', but variadic argument 1 has type 'char *'
+C:\Users\TERRY TRAN\source\repos\DataAnalysisApp\DataAnalysisApp\DataAnalysisApp.cpp(79,24): warning C4313: 'printf': '%d' in format string conflicts with argument 1 of type 'char *'
   DataAnalysisApp.vcxproj -> C:\Users\TERRY TRAN\source\repos\DataAnalysisApp\x64\Debug\DataAnalysisApp.exe
   'pwsh.exe' is not recognized as an internal or external command,
   operable program or batch file.
