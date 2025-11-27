@@ -32,37 +32,39 @@ static size_t write_data(char *buffer, size_t size, size_t nmemb, void *userp) {
     return realSize;
 }
 
-int main()
-{
-    //std::cout << "Hello World!\n";
-    curl_global_init(CURL_GLOBAL_ALL);
+char* callNWSAPI(memory* chunk) {
 
     CURL* handle;
     CURLcode res;
-    struct memory chunk;
 
-    chunk.memory = NULL;
-    chunk.size = 0;
-
+    //Provides User Agent OR API key to identify your application
     struct curl_slist* headers = NULL;
-    
+    headers = curl_slist_append(headers, "User-Agent: TCTWeather (terry78913@gmail.com)");
+    headers = curl_slist_append(headers, "Accept: application/geo+json");
 
-    
+    //Fields for user input to fill in the future
+    std::string fieldQuery = "forecast";
+    std::string linkOfData = "";
+    std::string apiURL = "";
+    std::string apiKey = "";
+    std::string fileAccept = "";
+    char* dataPoint = NULL;
+
     handle = curl_easy_init();
-    //curl_global_init(handle);
+
     if (handle) {
-        //Call NWS API for weather data based on San Diego's coord location 
+
+        //Provides URL for API calls
         curl_easy_setopt(handle, CURLOPT_URL, "https://api.weather.gov/points/32.7157,-117.1611");
-        //curl_easy_setopt(handle, CURLOPT_URL, "https://api.weather.gov/points/");
 
-        headers = curl_slist_append(headers, "User-Agent: TCTWeather (terry78913@gmail.com)");
-        headers = curl_slist_append(headers, "Accept: application/geo+json");
-
+        //Sets header option to the content of headers
         curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
 
+        //Sets the function that is used to handle incoming data 
+        // (the function is tailored to however you need to handle new data)
         curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, write_data);
 
-        curl_easy_setopt(handle, CURLOPT_WRITEDATA, &chunk);
+        curl_easy_setopt(handle, CURLOPT_WRITEDATA, chunk);
 
         res = curl_easy_perform(handle);
 
@@ -70,24 +72,42 @@ int main()
             fprintf(stderr, "curl_easy_perform() returned %s/n", curl_easy_strerror(res));
         }
         else {
-            char* dataPoint = NULL;
-            printf("We got %d bytes to our callback in memory\n", (int)chunk.size);
-            printf("Memory data: \n%s", chunk.memory);
+            //Store datapoint
+            printf("We got %d bytes to our callback in memory\n", (int)chunk->size);
+            //printf("Memory data: \n%s", chunk->memory);
 
-            dataPoint = strstr(chunk.memory, "forecast");
+            dataPoint = strstr(chunk->memory, fieldQuery.c_str()); 
+            //dataPoint = strstr(chunk->memory, "forecast");
             if (dataPoint) {
-                printf("Found Domain at index %d\n", (dataPoint = chunk.memory));
+                printf("Found %s at index %d\n", fieldQuery.c_str(), (dataPoint = chunk->memory));
             }
         }
 
-        free(chunk.memory);
+        
+        //free(chunk->memory);
         curl_easy_cleanup(handle);
+        return dataPoint;
     }
+}
 
+int main()
+{
+    //Setup curl for the entire program's lifetime
+    curl_global_init(CURL_GLOBAL_ALL);
 
-    //Test coords for data 32.93066677912789,-117.14432584599716
-    //test link for data https://api.weather.gov/points/32.93066677912789,-117.14432584599716
+    char* dataPoint = NULL;
+    struct memory chunk;
+    chunk.memory = NULL;
+    chunk.size = 0;
 
+    struct memory* chunkPtr = &chunk;
+
+    dataPoint = callNWSAPI(chunkPtr);
+    printf("Data Printed in Main %s", dataPoint);
+
+    //printf("Data Size: %s\n", chunk.memory);
+    free(chunkPtr->memory);
+    //free(dataPoint);
     curl_global_cleanup();
     return 0;
 
