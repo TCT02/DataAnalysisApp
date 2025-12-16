@@ -5,8 +5,12 @@
 #include <string.h>
 #include <iostream>
 #include <curl\curl.h>
-
+#include <cstdlib>
+#include <nlohmann/json.hpp>
 CURLcode curl_global_init(long flags);
+
+// for convenience
+using json = nlohmann::json;
 
 struct memory {
     char *memory;
@@ -39,7 +43,7 @@ char* callNWSAPI(memory* chunk) {
 
     //Provides User Agent OR API key to identify your application
     struct curl_slist* headers = NULL;
-    headers = curl_slist_append(headers, "User-Agent: TCTWeather (terry78913@gmail.com)");
+    headers = curl_slist_append(headers, "User-Agent: TCTWeather (tct@gmail.com)");
     headers = curl_slist_append(headers, "Accept: application/geo+json");
 
     //Fields for user input to fill in the future
@@ -102,6 +106,7 @@ int main()
 
     struct memory* chunkPtr = &chunk;
 
+    //Call API 
     dataPoint = callNWSAPI(chunkPtr);
     printf("Data Printed in Main %s", dataPoint);
 
