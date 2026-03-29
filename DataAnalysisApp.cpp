@@ -6,6 +6,7 @@
 #include <iostream>
 #include <curl\curl.h>
 #include <cstdlib>
+#include <windows.h>
 #include <nlohmann/json.hpp>
 CURLcode curl_global_init(long flags);
 
@@ -36,7 +37,7 @@ static size_t write_data(char *buffer, size_t size, size_t nmemb, void *userp) {
     return realSize;
 }
 
-char* callNWSAPI(memory* chunk) {
+void callNWSAPI(memory* chunk, std::string link) {
 
     CURL* handle;
     CURLcode res;
@@ -60,6 +61,7 @@ char* callNWSAPI(memory* chunk) {
 
         //Provides URL for API calls
         curl_easy_setopt(handle, CURLOPT_URL, "https://api.weather.gov/points/32.7157,-117.1611");
+        //curl_easy_setopt(handle, CURLOPT_URL, link);
 
         //Sets header option to the content of headers
         curl_easy_setopt(handle, CURLOPT_HTTPHEADER, headers);
@@ -78,19 +80,16 @@ char* callNWSAPI(memory* chunk) {
         else {
             //Store datapoint
             printf("We got %d bytes to our callback in memory\n", (int)chunk->size);
-            //printf("Memory data: \n%s", chunk->memory);
+            //printf("Found %s\n", (chunk->memory));
+            printf("Found a JSON file\n");
 
-            dataPoint = strstr(chunk->memory, fieldQuery.c_str()); 
-            //dataPoint = strstr(chunk->memory, "forecast");
-            if (dataPoint) {
-                printf("Found %s at index %d\n", fieldQuery.c_str(), (dataPoint = chunk->memory));
-            }
+          
         }
 
         
         //free(chunk->memory);
         curl_easy_cleanup(handle);
-        return dataPoint;
+        //return dataPoint;
     }
 }
 
@@ -103,12 +102,39 @@ int main()
     struct memory chunk;
     chunk.memory = NULL;
     chunk.size = 0;
+    std::string cityLink = "";
+    std::string forecastLink = "";
+
+    //Determined by user input
+
+    //Prompt user for location and resolve that to a link from a dictionary of places
+    //For now, it will be fixed on San Diego
+    cityLink = "https://api.weather.gov/points/32.7157,-117.1611";
 
     struct memory* chunkPtr = &chunk;
 
-    //Call API 
-    dataPoint = callNWSAPI(chunkPtr);
-    printf("Data Printed in Main %s", dataPoint);
+    //Call API to obtain weather data for the first time
+    callNWSAPI(chunkPtr, cityLink);
+    //printf("Data Printed in Main %s", dataPoint);
+
+    //Parse Json file for first API call
+    json jsonFileBuffer = json::parse(chunkPtr->memory);
+
+    printf("(In Main Function) Found %s\n", (chunkPtr->memory));
+
+    forecastLink = jsonFileBuffer["properties"]["forecast"];
+    std::cout << "Forecast from dataFile \n" << forecastLink << std::endl;
+
+    std::cout << "-------------------------------------------------------------------- \n" << std::endl;
+    //Call NWS a second time to pull the data specifically from the forecast link found above.
+    callNWSAPI(chunkPtr, forecastLink);
+
+    printf("Found Forecast from NWS %s\n", (chunkPtr->memory));
+
+    //Parse Json File for forecast
+    //json jsonFileBufferTwo = json::parse(chunkPtr->memory);
+    //std::cout << "Forecast Periods \n" << jsonFileBufferTwo["properties"]["periods"] << std::endl;
+
 
     //printf("Data Size: %s\n", chunk.memory);
     free(chunkPtr->memory);
